@@ -314,7 +314,11 @@ def main():
         print("epoch_idx",epoch_idx,"\n")
         
         # Print losses and validation metrics
-        print(f"Train Loss: {train_loss:.4f}, Segmentation Loss : {seg_loss:.4f}, Dino Loss: {(train_loss-seg_loss)*(1/weight):.4f}, Monitor Loss : {monitor_loss:.4f}")
+        if dinowithsegloss:
+            print(f"Total Loss: {train_loss:.4f}, Segmentation Loss : {seg_loss:.4f}, Dino Loss: {(train_loss-seg_loss)*(1/weight):.4f}, Monitor Loss : {monitor_loss:.4f}")
+        else:
+            print(f"Dino Loss: {train_loss:.4f}, Monitor Loss : {monitor_loss:.4f}")
+    
         print(f"Validation Cosine Similarity: {cos_sim:.4f}")
         print(f"Validation IoU: {val_iou:.4f}")
 
