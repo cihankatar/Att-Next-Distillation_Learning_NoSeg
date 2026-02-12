@@ -86,7 +86,7 @@ def update_teacher(student, teacher, momentum):
 
 def main():
 
-    data, training_mode, op, dinowithsegloss = 'isic_2018_1', "ssl", "train",False
+    data, training_mode, op, dinowithsegloss = 'isic_2018_1', "ssl", "train",True
 
     best_loss   = float("inf")
     device      = using_device()
@@ -201,6 +201,8 @@ def main():
                     if dinowithsegloss:
                         seg_loss  = F.binary_cross_entropy_with_logits(seg_logits, seg_target)
                         loss_c    = loss_fn(student_proj, teacher_proj, teacher_temp)
+                        if epoch_idx > 30:
+                            weigt = 0.1
                         loss      = loss_c * weigt + seg_loss
                         optimizer.zero_grad()
                         loss.backward()
@@ -297,7 +299,7 @@ def main():
     for epoch in trange(config['epochs'], desc="Epochs"):
 
         # Training
-        weight = 0.1 
+        weight = 0.0 
         current_momentum = get_teacher_momentum(epoch, config['epochs'])
         train_loss,seg_loss,monitor_loss = run_epoch(train_loader, epoch_idx, current_momentum,weight,training=True )
         wandb.log({"Train Loss": train_loss,
