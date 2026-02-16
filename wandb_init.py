@@ -14,7 +14,7 @@ def config_func(training_mode):
         "sslmode_modelname" :"Dino",
         "imnetpr"           :False,
         "bsize"             :8, 
-        "epochs"            :201,
+        "epochs"            :200,
         "imsize"            :256,
         "lrate"             :0.0001,
         "aug"               :False,
@@ -30,7 +30,7 @@ def config_func(training_mode):
     elif training_mode == "supervised":
 
         configs={
-        "mode"              :"ssl_pretrained",
+        "mode"              :"supervised",
         "sslmode_modelname" :"Dino",
         "imnetpr"           :True,
         "bsize"             :8,
