@@ -180,16 +180,9 @@ def main():
         with torch.set_grad_enabled(training):
             for img, path, cropped_real_mask, student_augs, teacher_augs, pseudo_masks in loader:
 
-                if epoch_idx % 20 == 0:
-                    s_time = time.time()
-
                 student_feats = [student(im.to(device))[3] for im in student_augs]
                 student_pool  = [feat.mean(dim=(2, 3)) for feat in student_feats]
                 student_proj  = [F.normalize(student_head(p), dim=1) for p in student_pool]
-                
-                if epoch_idx % 20 == 0:
-                    e_time = time.time()
-                    print(f"Forward pass took {e_time - s_time:.4f} seconds") 
                 
                 with torch.no_grad():
 
@@ -332,7 +325,7 @@ def main():
         if dinowithsegloss:
             print(f"Total Loss: {total_loss:.4f}, Segmentation Loss : {seg_loss:.4f}, Dino Loss: {(dino_loss):.4f}, Monitor Loss : {monitor_loss:.4f}")
         else:
-            print(f"Dino Loss: {total_loss:.4f}, Monitor Loss : {monitor_loss:.4f}")
+            print(f"Dino Loss: {dino_loss:.4f}, Monitor Loss : {monitor_loss:.4f}")
     
         print(f"Validation Cosine Similarity: {cos_sim:.4f}")
         print(f"Validation IoU: {val_iou:.4f}")
