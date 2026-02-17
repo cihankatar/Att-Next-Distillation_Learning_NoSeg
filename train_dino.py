@@ -11,7 +11,6 @@ from wandb_init import parser_init, wandb_init
 from models.Model import model_dice_bce
 from utils.Heads import ProjectionHead, SegmentationSHead, SegmentationMHead, get_teacher_momentum, get_teacher_temp
 from utils.Loss_dino import DINOLoss
-from torch.nn.utils import clip_grad_norm_
 import matplotlib.pyplot as plt
 import numpy as np
 import time
@@ -103,8 +102,8 @@ def main():
                       args.imsize, args.cutoutpr, args.cutoutbox, args.shuffle, args.sratio, data)
 
     train_loader    = create_loader(args.op)
+
     args.op         =  "validation"
-    
     val_loader      = create_loader(args.op)
     args.op         = "train"
     
@@ -137,6 +136,7 @@ def main():
     scheduler       = CosineAnnealingLR(optimizer, config['epochs'], eta_min=config['learningrate'] / 10)
 
     ML_DATA_OUTPUT      = os.environ["ML_DATA_OUTPUT"]+'isic_1/'
+
     checkpoint_path_read = ML_DATA_OUTPUT+str(student.__class__.__name__)+str(res)
     #student.load_state_dict(torch.load(checkpoint_path_read, map_location=torch.device('cpu')))
     checkpoint_path_head = ML_DATA_OUTPUT+str(s_head.__class__.__name__)+str(res)
@@ -180,10 +180,17 @@ def main():
         with torch.set_grad_enabled(training):
             for img, path, cropped_real_mask, student_augs, teacher_augs, pseudo_masks in loader:
 
+                if epoch_idx % 20 == 0:
+                    s_time = time.time()
+
                 student_feats = [student(im.to(device))[3] for im in student_augs]
                 student_pool  = [feat.mean(dim=(2, 3)) for feat in student_feats]
                 student_proj  = [F.normalize(student_head(p), dim=1) for p in student_pool]
-
+                
+                if epoch_idx % 20 == 0:
+                    e_time = time.time()
+                    print(f"Forward pass took {e_time - s_time:.4f} seconds") 
+                
                 with torch.no_grad():
 
                     teacher_feats = [teacher(im.to(device))[3] for im in teacher_augs]
@@ -325,11 +332,13 @@ def main():
         if dinowithsegloss:
             print(f"Total Loss: {total_loss:.4f}, Segmentation Loss : {seg_loss:.4f}, Dino Loss: {(dino_loss):.4f}, Monitor Loss : {monitor_loss:.4f}")
         else:
-            print(f"Dino Loss: {dino_loss:.4f}, Monitor Loss : {monitor_loss:.4f}")
+            print(f"Dino Loss: {total_loss:.4f}, Monitor Loss : {monitor_loss:.4f}")
     
         print(f"Validation Cosine Similarity: {cos_sim:.4f}")
         print(f"Validation IoU: {val_iou:.4f}")
 
+
+        # Save best model
 
         if epoch_idx>30:
             if dinowithsegloss:
