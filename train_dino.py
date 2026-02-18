@@ -83,7 +83,7 @@ def update_teacher(student, teacher, momentum):
 
 def main():
 
-    data, training_mode, op, dinowithsegloss, startwithcombinedloss = 'isic_2018_1', "ssl", "train",False,False
+    data, training_mode, op, dinowithsegloss, startwithcombinedloss = 'isic_2018_1', "ssl", "train",True,True
 
     best_loss   = float("inf")
     device      = using_device()
@@ -200,7 +200,7 @@ def main():
                         seg_loss  = F.binary_cross_entropy_with_logits(seg_logits, seg_target)
                         loss_d    = loss_fn(student_proj, teacher_proj, teacher_temp)
                         if startwithcombinedloss:
-                            loss      = loss_d + seg_loss
+                            loss      = loss_d*weight + seg_loss
                         else:
                             loss      = loss_d + seg_loss if epoch_idx > 30 else loss_d  # add seg loss after 30 epochs
 
@@ -304,7 +304,7 @@ def main():
     for epoch in trange(config['epochs'], desc="Epochs"):
 
         # Training
-        weight = 1 
+        weight = 1
         current_momentum = get_teacher_momentum(epoch, config['epochs'])
         total_loss, dino_loss, seg_loss, monitor_loss = run_epoch(train_loader, epoch_idx, current_momentum,weight,training=True )
         wandb.log({"Train Loss": total_loss, 
@@ -325,7 +325,7 @@ def main():
         if dinowithsegloss:
             print(f"Total Loss: {total_loss:.4f}, Segmentation Loss : {seg_loss:.4f}, Dino Loss: {(dino_loss):.4f}, Monitor Loss : {monitor_loss:.4f}")
         else:
-            print(f"Dino Loss: {dino_loss:.4f}, Monitor Loss : {monitor_loss:.4f}")
+            print(f"Dino Loss: {total_loss:.4f}, Monitor Loss : {monitor_loss:.4f}")
     
         print(f"Validation Cosine Similarity: {cos_sim:.4f}")
         print(f"Validation IoU: {val_iou:.4f}")
