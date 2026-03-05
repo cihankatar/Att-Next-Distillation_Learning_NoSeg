@@ -96,7 +96,7 @@ def update_teacher(student, teacher, momentum):
 
 def main():
 
-    data, training_mode, op, dinowithsegloss, startwithcombinedloss = 'isic_2018_1', "ssl", "train",False,False
+    data, training_mode, op, dinowithsegloss, startwithcombinedloss = 'isic_2018_1', "ssl", "train",True,False
 
     best_iou   = 0.0
     device      = using_device()
@@ -200,7 +200,7 @@ def main():
                 #     teacher_proj  = [F.normalize(teacher_head(p), dim=1) for p in teacher_pool]
 
 
-                k = 8  # 64 token
+                k = 16  # 64 token
 
                 student_feats = [student(im.to(device))[3] for im in student_augs]  # each [B,512,H,W]
                 student_tok   = [grid_tokens(f, k) for f in student_feats]         # each [B,16,512]
